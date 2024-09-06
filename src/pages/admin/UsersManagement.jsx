@@ -1,7 +1,7 @@
 // src/pages/UserManagement.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_BASE_URL } from '../api';
+import { API_BASE_URL } from '../../api';
 import {
   Box,
   Button,

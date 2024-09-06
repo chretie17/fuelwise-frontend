@@ -32,7 +32,9 @@ const Login = () => {
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login`, { login, password });
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('role', response.data.role); // Store the user's role
+      localStorage.setItem('role', response.data.role); 
+      localStorage.setItem('userId', response.data.userId); 
+
       navigate('/dashboard');
     } catch (error) {
       console.error('Error logging in:', error);
