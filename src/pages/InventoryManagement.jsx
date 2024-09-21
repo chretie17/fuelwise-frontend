@@ -1,4 +1,3 @@
-// src/pages/InventoryManagement.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../api';
@@ -23,8 +22,70 @@ import {
   FormControl,
   InputLabel,
   Snackbar,
-  Alert
+  Alert,
+  IconButton,
+  Box,
+  Tooltip,
+  ThemeProvider,
+  createTheme,
 } from '@mui/material';
+import { styled } from '@mui/system';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  LocalGasStation as FuelIcon,
+  AttachMoney as PriceIcon,
+  Business as SupplierIcon,
+  DateRange as DateIcon,
+} from '@mui/icons-material';
+import MoneyIcon from '@mui/icons-material/Money';
+
+// Create a custom theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#007547',
+    },
+    secondary: {
+      main: '#ff6b6b',
+    },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+});
+
+// Styled components
+const StyledContainer = styled(Container)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  marginTop: theme.spacing(4),
+}));
+
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+  marginTop: theme.spacing(3),
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+}));
+
+const StyledTableHead = styled(TableHead)(({ theme }) => ({
+  backgroundColor: theme.palette.primary.main,
+  '& .MuiTableCell-head': {
+    color: theme.palette.common.white,
+    fontWeight: 'bold',
+  },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(odd)': {
+    backgroundColor: theme.palette.action.hover,
+  },
+  '&:hover': {
+    backgroundColor: theme.palette.action.selected,
+  },
+}));
 
 const InventoryManagement = () => {
   const [inventory, setInventory] = useState([]);
@@ -110,120 +171,153 @@ const InventoryManagement = () => {
   };
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
-        Inventory Management
-      </Typography>
-      <Button variant="contained" color="primary" onClick={() => handleOpenDialog()}>
-        Add Inventory Item
-      </Button>
-      <TableContainer component={Paper} sx={{ marginTop: 3 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Fuel Type</TableCell>
-              <TableCell>Liters</TableCell> {/* Updated from Quantity to Liters */}
-              <TableCell>Unit Price</TableCell>
-              <TableCell>Supplier</TableCell>
-              <TableCell>Date Received</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {inventory.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.fuel_type}</TableCell>
-                <TableCell>{item.liters}</TableCell> {/* Updated from Quantity to Liters */}
-                <TableCell>{item.unit_price}</TableCell>
-                <TableCell>{item.supplier_name}</TableCell>
-                <TableCell>{item.date_received}</TableCell>
-                <TableCell>
-                  <Button color="primary" onClick={() => handleOpenDialog(item)}>
-                    Edit
-                  </Button>
-                  <Button color="secondary" onClick={() => handleDeleteItem(item.id)}>
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Dialog for adding/updating inventory item */}
-      <Dialog open={open} onClose={handleCloseDialog}>
-        <DialogTitle>{currentItem.id ? 'Edit Inventory Item' : 'Add Inventory Item'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Fuel Type"
-            name="fuel_type"
-            value={currentItem.fuel_type}
-            onChange={handleInputChange}
-            fullWidth
-          />
-          <TextField
-            margin="dense"
-            label="Liters"  // Updated label from Quantity to Liters
-            name="liters"
-            value={currentItem.liters}
-            onChange={handleInputChange}
-            fullWidth
-          />
-          <TextField
-            margin="dense"
-            label="Unit Price"
-            name="unit_price"
-            value={currentItem.unit_price}
-            onChange={handleInputChange}
-            fullWidth
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Supplier</InputLabel>
-            <Select
-              name="supplier_id"
-              value={currentItem.supplier_id}
-              onChange={handleInputChange}
-            >
-              {suppliers.map((supplier) => (
-                <MenuItem key={supplier.id} value={supplier.id}>
-                  {supplier.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
-            label="Date Received"
-            name="date_received"
-            type="date"
-            value={currentItem.date_received}
-            onChange={handleInputChange}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveItem} color="primary">
-            Save
+    <ThemeProvider theme={theme}>
+      <StyledContainer>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h4" color="primary">
+            Inventory Management
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+          >
+            Add Inventory Item
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+        <StyledTableContainer component={Paper}>
+          <Table>
+            <StyledTableHead>
+              <TableRow>
+                <TableCell>Fuel Type</TableCell>
+                <TableCell>Liters</TableCell>
+                <TableCell>Unit Price</TableCell>
+                <TableCell>Supplier</TableCell>
+                <TableCell>Date Received</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </StyledTableHead>
+            <TableBody>
+              {inventory.map((item) => (
+                <StyledTableRow key={item.id}>
+                  <TableCell>
+                    <Box display="flex" alignItems="center">
+                      <FuelIcon color="primary" sx={{ mr: 1 }} />
+                      {item.fuel_type}
+                    </Box>
+                  </TableCell>
+                  <TableCell>{item.liters}</TableCell>
+                  <TableCell>
+                    <Box display="flex" alignItems="center">
+                      <MoneyIcon color="primary" sx={{ mr: 1 }} />
+                      {item.unit_price}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box display="flex" alignItems="center">
+                      <SupplierIcon color="primary" sx={{ mr: 1 }} />
+                      {item.supplier_name}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box display="flex" alignItems="center">
+                      <DateIcon color="primary" sx={{ mr: 1 }} />
+                      {item.date_received}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title="Edit">
+                      <IconButton color="primary" onClick={() => handleOpenDialog(item)}>
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton color="secondary" onClick={() => handleDeleteItem(item.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </StyledTableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </StyledTableContainer>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+        <Dialog open={open} onClose={handleCloseDialog}>
+          <DialogTitle>{currentItem.id ? 'Edit Inventory Item' : 'Add Inventory Item'}</DialogTitle>
+          <DialogContent>
+            <TextField
+              margin="dense"
+              label="Fuel Type"
+              name="fuel_type"
+              value={currentItem.fuel_type}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              margin="dense"
+              label="Liters"
+              name="liters"
+              type="number"
+              value={currentItem.liters}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              margin="dense"
+              label="Unit Price"
+              name="unit_price"
+              type="number"
+              value={currentItem.unit_price}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Supplier</InputLabel>
+              <Select
+                name="supplier_id"
+                value={currentItem.supplier_id}
+                onChange={handleInputChange}
+              >
+                {suppliers.map((supplier) => (
+                  <MenuItem key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              margin="dense"
+              label="Date Received"
+              name="date_received"
+              type="date"
+              value={currentItem.date_received}
+              onChange={handleInputChange}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleSaveItem} color="primary" startIcon={<AddIcon />}>
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={3000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </StyledContainer>
+    </ThemeProvider>
   );
 };
 

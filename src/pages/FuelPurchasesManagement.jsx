@@ -1,4 +1,3 @@
-// src/pages/FuelPurchasesManagement.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../api';
@@ -25,6 +24,7 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
+import { CreditCard, Droplet, Calendar } from 'lucide-react';
 
 const FuelPurchasesManagement = () => {
   const [purchases, setPurchases] = useState([]);
@@ -73,11 +73,10 @@ const FuelPurchasesManagement = () => {
     setCurrentPurchase((prev) => {
       const updatedPurchase = { ...prev, [name]: value };
       
-      // Calculate total cost dynamically
       if (name === 'unit_price' || name === 'liters') {
         const unitPrice = parseFloat(updatedPurchase.unit_price) || 0;
         const liters = parseFloat(updatedPurchase.liters) || 0;
-        updatedPurchase.total_cost = (unitPrice * liters).toFixed(2); // Ensure total cost is always a number with two decimal places
+        updatedPurchase.total_cost = (unitPrice * liters).toFixed(2);
       }
 
       return updatedPurchase;
@@ -87,10 +86,8 @@ const FuelPurchasesManagement = () => {
   const handleSavePurchase = async () => {
     try {
       if (currentPurchase.id) {
-        // Update existing purchase
         await axios.put(`${API_BASE_URL}/fuel-purchases/${currentPurchase.id}`, currentPurchase);
       } else {
-        // Create new purchase
         await axios.post(`${API_BASE_URL}/fuel-purchases`, currentPurchase);
       }
       showSnackbar('Fuel purchase saved successfully.', 'success');
@@ -123,37 +120,52 @@ const FuelPurchasesManagement = () => {
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom style={{ color: '#007547' }}>
         Fuel Purchases Management
       </Typography>
-      <Button variant="contained" color="primary" onClick={() => handleOpenDialog()}>
+      <Button variant="contained" style={{ backgroundColor: '#007547', color: 'white' }} onClick={() => handleOpenDialog()}>
         Record New Purchase
       </Button>
       <TableContainer component={Paper} sx={{ marginTop: 3 }}>
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Fuel Type</TableCell>
-              <TableCell>Liters</TableCell>
-              <TableCell>Total Cost (RWF)</TableCell>
-              <TableCell>Supplier</TableCell>
-              <TableCell>Purchase Date</TableCell>
-              <TableCell>Actions</TableCell>
+            <TableRow style={{ backgroundColor: '#007547' }}>
+              <TableCell style={{ color: 'white' }}>Fuel Type</TableCell>
+              <TableCell style={{ color: 'white' }}>Liters</TableCell>
+              <TableCell style={{ color: 'white' }}>Total Cost (RWF)</TableCell>
+              <TableCell style={{ color: 'white' }}>Supplier</TableCell>
+              <TableCell style={{ color: 'white' }}>Purchase Date</TableCell>
+              <TableCell style={{ color: 'white' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {purchases.map((purchase) => (
               <TableRow key={purchase.id}>
-                <TableCell>{purchase.fuel_type}</TableCell>
-                <TableCell>{purchase.liters}</TableCell>
-                <TableCell>{purchase.total_cost}</TableCell>
-                <TableCell>{purchase.supplier_name}</TableCell>
-                <TableCell>{purchase.purchase_date}</TableCell>
                 <TableCell>
-                  <Button color="primary" onClick={() => handleOpenDialog(purchase)}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Droplet color="#007547" size={20} style={{ marginRight: '8px' }} />
+                    {purchase.fuel_type}
+                  </div>
+                </TableCell>
+                <TableCell>{purchase.liters}</TableCell>
+                <TableCell>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <CreditCard color="#007547" size={20} style={{ marginRight: '8px' }} />
+                    {purchase.total_cost}
+                  </div>
+                </TableCell>
+                <TableCell>{purchase.supplier_name}</TableCell>
+                <TableCell>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Calendar color="#007547" size={20} style={{ marginRight: '8px' }} />
+                    {purchase.purchase_date}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Button style={{ color: '#007547' }} onClick={() => handleOpenDialog(purchase)}>
                     Edit
                   </Button>
-                  <Button color="secondary" onClick={() => handleDeletePurchase(purchase.id)}>
+                  <Button style={{ color: '#007547' }} onClick={() => handleDeletePurchase(purchase.id)}>
                     Delete
                   </Button>
                 </TableCell>
@@ -163,9 +175,8 @@ const FuelPurchasesManagement = () => {
         </Table>
       </TableContainer>
 
-      {/* Dialog for adding/updating purchase */}
       <Dialog open={open} onClose={handleCloseDialog}>
-        <DialogTitle>{currentPurchase.id ? 'Edit Purchase' : 'Record New Purchase'}</DialogTitle>
+        <DialogTitle style={{ color: '#007547' }}>{currentPurchase.id ? 'Edit Purchase' : 'Record New Purchase'}</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
@@ -200,7 +211,7 @@ const FuelPurchasesManagement = () => {
             value={currentPurchase.total_cost}
             onChange={handleInputChange}
             fullWidth
-            disabled // Make this field read-only
+            disabled
           />
           <FormControl fullWidth margin="dense">
             <InputLabel>Supplier</InputLabel>
@@ -229,13 +240,12 @@ const FuelPurchasesManagement = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSavePurchase} color="primary">
+          <Button onClick={handleSavePurchase} style={{ color: '#007547' }}>
             Save
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}

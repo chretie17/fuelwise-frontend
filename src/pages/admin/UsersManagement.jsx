@@ -1,4 +1,3 @@
-// src/pages/UserManagement.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../api';
@@ -24,8 +23,55 @@ import {
   FormControl,
   InputLabel,
   Snackbar,
-  Alert
+  Alert,
+  ThemeProvider,
+  createTheme
 } from '@mui/material';
+import { styled } from '@mui/system';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#007547',
+    },
+  },
+});
+
+const StyledContainer = styled(Container)(({ theme }) => ({
+  backgroundColor: '#f0f8f4',
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  margin: theme.spacing(1),
+  '&:hover': {
+    backgroundColor: '#005a35',
+  },
+}));
+
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+  marginTop: theme.spacing(3),
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+}));
+
+const StyledTableHead = styled(TableHead)(({ theme }) => ({
+  backgroundColor: '#007547',
+  '& .MuiTableCell-head': {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(odd)': {
+    backgroundColor: '#e8f5e9',
+  },
+  '&:hover': {
+    backgroundColor: '#c8e6c9',
+  },
+}));
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -33,7 +79,6 @@ const UserManagement = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [currentUser, setCurrentUser] = useState({ username: '', email: '', password: '', role: '' });
 
-  // Fetch all users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -66,11 +111,9 @@ const UserManagement = () => {
   const handleSaveUser = async () => {
     try {
       if (currentUser.id) {
-        // Update existing user
         await axios.put(`${API_BASE_URL}/users/${currentUser.id}`, currentUser);
         showSnackbar('User updated successfully.', 'success');
       } else {
-        // Create new user
         await axios.post(`${API_BASE_URL}/users`, currentUser);
         showSnackbar('User added successfully.', 'success');
       }
@@ -102,105 +145,105 @@ const UserManagement = () => {
   };
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
-        User Management
-      </Typography>
-      <Button variant="contained" color="primary" onClick={() => handleOpenDialog()}>
-        Add User
-      </Button>
-      <TableContainer component={Paper} sx={{ marginTop: 3 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Username</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.username}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>
-                  <Button color="primary" onClick={() => handleOpenDialog(user)}>
-                    Edit
-                  </Button>
-                  <Button color="secondary" onClick={() => handleDeleteUser(user.id)}>
-                    Delete
-                  </Button>
-                </TableCell>
+    <ThemeProvider theme={theme}>
+      <StyledContainer>
+        <Typography variant="h4" gutterBottom color="primary">
+          User Management
+        </Typography>
+        <StyledButton variant="contained" color="primary" onClick={() => handleOpenDialog()}>
+          Add User
+        </StyledButton>
+        <StyledTableContainer component={Paper}>
+          <Table>
+            <StyledTableHead>
+              <TableRow>
+                <TableCell>Username</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </StyledTableHead>
+            <TableBody>
+              {users.map((user) => (
+                <StyledTableRow key={user.id}>
+                  <TableCell>{user.username}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    <StyledButton variant="outlined" color="primary" onClick={() => handleOpenDialog(user)}>
+                      Edit
+                    </StyledButton>
+                    <StyledButton variant="outlined" color="secondary" onClick={() => handleDeleteUser(user.id)}>
+                      Delete
+                    </StyledButton>
+                  </TableCell>
+                </StyledTableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </StyledTableContainer>
 
-      {/* Dialog for adding/updating user */}
-      <Dialog open={open} onClose={handleCloseDialog}>
-        <DialogTitle>{currentUser.id ? 'Edit User' : 'Add User'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Username"
-            name="username"
-            value={currentUser.username}
-            onChange={handleInputChange}
-            fullWidth
-          />
-          <TextField
-            margin="dense"
-            label="Email"
-            name="email"
-            value={currentUser.email}
-            onChange={handleInputChange}
-            fullWidth
-          />
-          <TextField
-            margin="dense"
-            label="Password"
-            name="password"
-            type="password"
-            value={currentUser.password}
-            onChange={handleInputChange}
-            fullWidth
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Role</InputLabel>
-            <Select
-              name="role"
-              value={currentUser.role}
+        <Dialog open={open} onClose={handleCloseDialog}>
+          <DialogTitle>{currentUser.id ? 'Edit User' : 'Add User'}</DialogTitle>
+          <DialogContent>
+            <TextField
+              margin="dense"
+              label="Username"
+              name="username"
+              value={currentUser.username}
               onChange={handleInputChange}
-            >
-              <MenuItem value="admin">Admin</MenuItem>
-              <MenuItem value="manager">Manager</MenuItem>
-              <MenuItem value="supplier">Supplier</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveUser} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+              fullWidth
+            />
+            <TextField
+              margin="dense"
+              label="Email"
+              name="email"
+              value={currentUser.email}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              margin="dense"
+              label="Password"
+              name="password"
+              type="password"
+              value={currentUser.password}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Role</InputLabel>
+              <Select
+                name="role"
+                value={currentUser.role}
+                onChange={handleInputChange}
+              >
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="manager">Manager</MenuItem>
+                <MenuItem value="supplier">Supplier</MenuItem>
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleSaveUser} color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={3000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </StyledContainer>
+    </ThemeProvider>
   );
 };
 
