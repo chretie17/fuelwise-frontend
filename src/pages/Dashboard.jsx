@@ -286,18 +286,36 @@ const Card = ({ title, value, icon, description }) => (
   </div>
 );
 
-const ChartSection = ({ title, data, dataKey, valueKey, numberFormatter }) => (
+const ChartSection = ({ title, data, dataKey, valueKey, numberFormatter, width, height }) => (
   <div style={styles.chartSection}>
     <h3 style={styles.chartHeader}>{title}</h3>
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
+    <ResponsiveContainer width={width || "100%"} height={height || 300}>
+      <LineChart
+        data={data}
+        margin={{ top: 20, right: 30, left: 20, bottom: 10 }} // Add margins to make sure the lines fit
+      >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey={dataKey} />
-        <YAxis tickFormatter={(tick) => numberFormatter(tick)} />
+        <XAxis 
+          dataKey={dataKey} 
+          interval={1} // Adjust the interval to reduce the number of X-axis ticks
+          tick={{ fontSize: 12 }} 
+        />
+       <YAxis
+  tickFormatter={(tick) => numberFormatter(tick)}
+  domain={[0, 300]} // Set Y-axis to range from 0 to 200
+/>
+
         <Tooltip formatter={(value) => numberFormatter(value)} />
         <Legend />
-        <Line type="monotone" dataKey={valueKey} stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} />
+        <Line
+          type="monotone"
+          dataKey={valueKey}
+          stroke="#10B981"
+          strokeWidth={2}
+          dot={{ r: 2 }} // Make dots smaller to reduce clutter
+        />
       </LineChart>
     </ResponsiveContainer>
   </div>
 );
+
