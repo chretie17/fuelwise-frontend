@@ -99,14 +99,19 @@ const FuelSalesManagement = () => {
     payment_mode: '',
   });
 
-  useEffect(() => {
-    fetchSales();
-    fetchInventory();
-  }, []);
+  // Simulating getting managerBranchId from logged-in user's session
+  const managerBranchId = localStorage.getItem('branch') ; // Assuming '1' is the default branch for testing
 
-  const fetchSales = async () => {
+  useEffect(() => {
+    fetchSales(managerBranchId);
+    fetchInventory(managerBranchId);
+  }, [managerBranchId]);
+
+  const fetchSales = async (branch_id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/fuel-sales`);
+      const response = await axios.get(`${API_BASE_URL}/fuel-sales`, {
+        params: { branch_id }, // Fetch sales only for the manager's branch
+      });
       setSales(response.data);
     } catch (error) {
       console.error('Error fetching sales:', error);
@@ -114,15 +119,16 @@ const FuelSalesManagement = () => {
     }
   };
 
-  const fetchInventory = async () => {
+  const fetchInventory = async (branch_id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/inventory`);
+      const response = await axios.get(`${API_BASE_URL}/inventory/branch/${branch_id}`);  // Use the correct route
       setInventory(response.data);
     } catch (error) {
       console.error('Error fetching inventory:', error);
       showSnackbar('Error fetching inventory.', 'error');
     }
   };
+  
 
   const handleOpenDialog = (
     sale = { id: '', fuel_type: '', liters: '', sale_price_per_liter: '', sale_date: '', payment_mode: '' }
@@ -161,7 +167,8 @@ const FuelSalesManagement = () => {
 
       const saleData = {
         ...currentSale,
-        sale_date: currentSale.sale_date,  // No transformation needed, it's already in YYYY-MM-DD format
+        branch_id: managerBranchId, // Ensure the sale is recorded under the manager's branch
+        sale_date: currentSale.sale_date, // No transformation needed, it's already in YYYY-MM-DD format
       };
 
       if (currentSale.id) {
@@ -171,8 +178,8 @@ const FuelSalesManagement = () => {
       }
 
       showSnackbar('Fuel sale saved successfully.', 'success');
-      fetchSales();
-      fetchInventory();
+      fetchSales(managerBranchId);
+      fetchInventory(managerBranchId);
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving sale:', error);
@@ -184,7 +191,7 @@ const FuelSalesManagement = () => {
     try {
       await axios.delete(`${API_BASE_URL}/fuel-sales/${id}`);
       showSnackbar('Fuel sale deleted successfully.', 'success');
-      fetchSales();
+      fetchSales(managerBranchId);
     } catch (error) {
       console.error('Error deleting sale:', error);
       showSnackbar('Error deleting sale.', 'error');
@@ -240,7 +247,7 @@ const FuelSalesManagement = () => {
                     </Box>
                   </TableCell>
                   <TableCell>{sale.total_revenue}</TableCell>
-                  <TableCell>{sale.sale_date}</TableCell> {/* Directly show the date string */}
+                  <TableCell>{sale.sale_date}</TableCell>
                   <TableCell>{sale.payment_mode}</TableCell>
                   <TableCell>
                     <Tooltip title="Edit">

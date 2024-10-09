@@ -110,6 +110,8 @@ const Login = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('role', response.data.role);
       localStorage.setItem('userId', response.data.userId);
+      localStorage.setItem('branch', response.data.branch);
+
       navigate('/dashboard');
     } catch (error) {
       console.error('Error logging in:', error);

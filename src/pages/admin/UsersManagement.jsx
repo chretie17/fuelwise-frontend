@@ -75,12 +75,14 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [branches, setBranches] = useState([]); // State to hold the list of branches
   const [open, setOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [currentUser, setCurrentUser] = useState({ username: '', email: '', password: '', role: '' });
+  const [currentUser, setCurrentUser] = useState({ username: '', email: '', password: '', role: '', branch_id: '' });
 
   useEffect(() => {
     fetchUsers();
+    fetchBranches(); // Fetch branches when the component mounts
   }, []);
 
   const fetchUsers = async () => {
@@ -93,14 +95,24 @@ const UserManagement = () => {
     }
   };
 
-  const handleOpenDialog = (user = { username: '', email: '', password: '', role: '' }) => {
+  const fetchBranches = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/branches`);
+      setBranches(response.data);
+    } catch (error) {
+      console.error('Error fetching branches:', error);
+      showSnackbar('Error fetching branches.', 'error');
+    }
+  };
+
+  const handleOpenDialog = (user = { username: '', email: '', password: '', role: '', branch_id: '' }) => {
     setCurrentUser(user);
     setOpen(true);
   };
 
   const handleCloseDialog = () => {
     setOpen(false);
-    setCurrentUser({ username: '', email: '', password: '', role: '' });
+    setCurrentUser({ username: '', email: '', password: '', role: '', branch_id: '' });
   };
 
   const handleInputChange = (e) => {
@@ -160,6 +172,7 @@ const UserManagement = () => {
                 <TableCell>Username</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Role</TableCell>
+                <TableCell>Branch</TableCell> {/* New column to display branch name */}
                 <TableCell>Actions</TableCell>
               </TableRow>
             </StyledTableHead>
@@ -169,6 +182,7 @@ const UserManagement = () => {
                   <TableCell>{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role}</TableCell>
+                  <TableCell>{user.branch_name || 'N/A'}</TableCell> {/* Show branch name if user is associated with a branch */}
                   <TableCell>
                     <StyledButton variant="outlined" color="primary" onClick={() => handleOpenDialog(user)}>
                       Edit
@@ -223,6 +237,24 @@ const UserManagement = () => {
                 <MenuItem value="supplier">Supplier</MenuItem>
               </Select>
             </FormControl>
+
+            {/* Only show branch selection if the role is "manager" */}
+            {currentUser.role === 'manager' && (
+              <FormControl fullWidth margin="dense">
+                <InputLabel>Branch</InputLabel>
+                <Select
+                  name="branch_id"
+                  value={currentUser.branch_id}
+                  onChange={handleInputChange}
+                >
+                  {branches.map((branch) => (
+                    <MenuItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDialog}>Cancel</Button>

@@ -109,15 +109,18 @@ const Sidebar = () => {
       { text: 'Manage Users', icon: <Group />, path: '/users' },
       { text: 'Inventory', icon: <Inventory2 />, path: '/inventory' },
       { text: 'Suppliers', icon: <LocalGasStation />, path: '/suppliers' },
-      { text: 'Fuel Sales', icon: <Payments />, path: '/fuel-sales' },
-      { text: 'Fuel Purchases', icon: <ShoppingBasket />, path: '/fuel-purchases' },
+      { text: 'Fuel Sales', icon: <Payments />, path: '/admin-sales' },
+      { text: 'Fuel Purchases', icon: <ShoppingBasket />, path: '/admin-purchase' },
       { text: 'Procurement', icon: <Assessment />, path: '/admin-procurement' },
       { text: 'Evaluation', icon: <Gavel />, path: '/admin-evaluation' },
+      { text: 'Branches', icon: <Gavel />, path: '/admin-branches' },
+      { text: 'Reports', icon: <Gavel />, path: '/admin-reports' },
+
     ],
     manager: [
       { text: 'Dashboard', icon: <BarChart />, path: '/dashboard' },
-      { text: 'Suppliers', icon: <LocalGasStation />, path: '/suppliers' },
-      { text: 'Reports', icon: <Description />, path: '/reports' },
+      { text: 'Sales', icon: <LocalGasStation />, path: '/fuel-sales' },
+      { text: 'Fuel Purchases', icon: <ShoppingBasket />, path: '/fuel-purchases' },
     ],
     supplier: [
       { text: 'Dashboard', icon: <BarChart />, path: '/dashboard' },

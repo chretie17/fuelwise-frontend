@@ -14,8 +14,12 @@ import SupplierSignup from './pages/SupplierSignup';
 import AddSupplierDetails from './pages/AddSupplierDetails';
 import SupplierBidding from './pages/SupplierBidding';
 import AdminFuelProcurement from './pages/admin/AdminFuelProcurement';
+import AdminBranc from './pages/admin/Branches'
 import AdminEvaluation from './pages/admin/AdminEvaluation';
 import AdminBOQ from './pages/admin/AdminBOQ';
+import AdminFuelSalesManagement from './pages/admin/adminfuelsales';
+import AdminFuelPurchasesManagement from './pages/admin/AdminPurchase';
+import AdminReports from './pages/admin/report';
 
 const MainContent = styled(Box)(({ theme, sidebarwidth }) => ({
   flexGrow: 1,
@@ -60,6 +64,10 @@ const App = () => {
           <Route path="/inventory" element={<InventoryManagement />} />
           <Route path="/suppliers" element={<SupplierManagement />} />
           <Route path="/fuel-purchases" element={<FuelPurchasesManagement />} />
+          <Route path="/admin-branches" element={<AdminBranc />} />
+          <Route path="/admin-sales" element={<AdminFuelSalesManagement />} />
+          <Route path="/admin-purchase" element={<AdminFuelPurchasesManagement/>} />
+          <Route path="/admin-reports" element={<AdminReports />} />
           <Route path="/fuel-sales" element={<FuelSalesManagement />} />
           <Route path="/signup" element={<SupplierSignup />} />
           <Route path="/add-supplier-details" element={<AddSupplierDetails />} />

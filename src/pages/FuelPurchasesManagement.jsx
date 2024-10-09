@@ -17,30 +17,41 @@ import {
   DialogContent,
   DialogTitle,
   Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Snackbar,
-  Alert
+  Alert,
+  FormControl,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { CreditCard, Droplet, Calendar } from 'lucide-react';
 
 const FuelPurchasesManagement = () => {
   const [purchases, setPurchases] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
   const [open, setOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [currentPurchase, setCurrentPurchase] = useState({ id: '', fuel_type: '', liters: '', unit_price: '', total_cost: '', supplier_id: '', purchase_date: '' });
+  const [currentPurchase, setCurrentPurchase] = useState({
+    id: '',
+    fuel_type: '',
+    liters: '',
+    unit_price: '',
+    total_cost: '',
+    purchase_date: ''
+  });
+
+  // Simulating getting managerBranchId from logged-in user's session
+  const managerBranchId = localStorage.getItem('branch');
 
   useEffect(() => {
-    fetchPurchases();
-    fetchSuppliers();
-  }, []);
+    if (managerBranchId) {
+      fetchPurchases(managerBranchId);
+    }
+  }, [managerBranchId]);
 
-  const fetchPurchases = async () => {
+  const fetchPurchases = async (branch_id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/fuel-purchases`);
+      const response = await axios.get(`${API_BASE_URL}/fuel-purchases`, {
+        params: { branch_id }
+      });
       setPurchases(response.data);
     } catch (error) {
       console.error('Error fetching purchases:', error);
@@ -48,24 +59,14 @@ const FuelPurchasesManagement = () => {
     }
   };
 
-  const fetchSuppliers = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/suppliers`);
-      setSuppliers(response.data);
-    } catch (error) {
-      console.error('Error fetching suppliers:', error);
-      showSnackbar('Error fetching suppliers.', 'error');
-    }
-  };
-
-  const handleOpenDialog = (purchase = { id: '', fuel_type: '', liters: '', unit_price: '', total_cost: '', supplier_id: '', purchase_date: '' }) => {
+  const handleOpenDialog = (purchase = { id: '', fuel_type: '', liters: '', unit_price: '', total_cost: '', purchase_date: '' }) => {
     setCurrentPurchase(purchase);
     setOpen(true);
   };
 
   const handleCloseDialog = () => {
     setOpen(false);
-    setCurrentPurchase({ id: '', fuel_type: '', liters: '', unit_price: '', total_cost: '', supplier_id: '', purchase_date: '' });
+    setCurrentPurchase({ id: '', fuel_type: '', liters: '', unit_price: '', total_cost: '', purchase_date: '' });
   };
 
   const handleInputChange = (e) => {
@@ -85,13 +86,18 @@ const FuelPurchasesManagement = () => {
 
   const handleSavePurchase = async () => {
     try {
+      const purchaseData = {
+        ...currentPurchase,
+        branch_id: managerBranchId // Add branch_id to the purchase data
+      };
+
       if (currentPurchase.id) {
-        await axios.put(`${API_BASE_URL}/fuel-purchases/${currentPurchase.id}`, currentPurchase);
+        await axios.put(`${API_BASE_URL}/fuel-purchases/${currentPurchase.id}`, purchaseData);
       } else {
-        await axios.post(`${API_BASE_URL}/fuel-purchases`, currentPurchase);
+        await axios.post(`${API_BASE_URL}/fuel-purchases`, purchaseData);
       }
       showSnackbar('Fuel purchase saved successfully.', 'success');
-      fetchPurchases();
+      fetchPurchases(managerBranchId);
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving purchase:', error);
@@ -103,7 +109,7 @@ const FuelPurchasesManagement = () => {
     try {
       await axios.delete(`${API_BASE_URL}/fuel-purchases/${id}`);
       showSnackbar('Fuel purchase deleted successfully.', 'success');
-      fetchPurchases();
+      fetchPurchases(managerBranchId);
     } catch (error) {
       console.error('Error deleting purchase:', error);
       showSnackbar('Error deleting purchase.', 'error');
@@ -133,7 +139,6 @@ const FuelPurchasesManagement = () => {
               <TableCell style={{ color: 'white' }}>Fuel Type</TableCell>
               <TableCell style={{ color: 'white' }}>Liters</TableCell>
               <TableCell style={{ color: 'white' }}>Total Cost (RWF)</TableCell>
-              <TableCell style={{ color: 'white' }}>Supplier</TableCell>
               <TableCell style={{ color: 'white' }}>Purchase Date</TableCell>
               <TableCell style={{ color: 'white' }}>Actions</TableCell>
             </TableRow>
@@ -154,7 +159,6 @@ const FuelPurchasesManagement = () => {
                     {purchase.total_cost}
                   </div>
                 </TableCell>
-                <TableCell>{purchase.supplier_name}</TableCell>
                 <TableCell>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <Calendar color="#007547" size={20} style={{ marginRight: '8px' }} />
@@ -209,24 +213,9 @@ const FuelPurchasesManagement = () => {
             label="Total Cost (RWF)"
             name="total_cost"
             value={currentPurchase.total_cost}
-            onChange={handleInputChange}
             fullWidth
             disabled
           />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Supplier</InputLabel>
-            <Select
-              name="supplier_id"
-              value={currentPurchase.supplier_id}
-              onChange={handleInputChange}
-            >
-              {suppliers.map((supplier) => (
-                <MenuItem key={supplier.id} value={supplier.id}>
-                  {supplier.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
           <TextField
             margin="dense"
             label="Purchase Date"
