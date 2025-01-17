@@ -1,102 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import styled from 'styled-components';
 import { TextField, Button, Typography, Box, Container, Paper } from '@mui/material';
 import { LockOutlined, PersonOutline } from '@mui/icons-material';
 import { API_BASE_URL } from '../api';
-import backgroundImage from '../assets/rubis.jpg';  // Import the background image
-
-const primaryColor = '#007547';
-
-const LoginContainer = styled(Container)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background-image: url(${backgroundImage});  // Use the imported image
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, ${primaryColor}66, ${primaryColor}33);
-    z-index: 1;
-  }
-`;
-
-const LoginPaper = styled(Paper)`
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  z-index: 2;
-  max-width: 400px;
-  width: 100%;
-`;
-
-const Logo = styled.div`
-  width: 80px;
-  height: 80px;
-  background-color: ${primaryColor};
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(0, 117, 71, 0.2);
-`;
-
-const FormBox = styled(Box)`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-`;
-
-const StyledTextField = styled(TextField)`
-  & .MuiOutlinedInput-root {
-    background-color: rgba(255, 255, 255, 0.8);
-    &:hover fieldset {
-      border-color: ${primaryColor};
-    }
-    &.Mui-focused fieldset {
-      border-color: ${primaryColor};
-    }
-  }
-  & .MuiInputLabel-root.Mui-focused {
-    color: ${primaryColor};
-  }
-`;
-
-const StyledButton = styled(Button)`
-  background-color: ${primaryColor};
-  padding: 12px;
-  &:hover {
-    background-color: ${primaryColor}dd;
-  }
-`;
-
-const SignUpLink = styled(Link)`
-  margin-top: 24px;
-  color: ${primaryColor};
-  text-decoration: none;
-  font-weight: bold;
-  &:hover {
-    text-decoration: underline;
-  }
-`;
+import backgroundImage from '../assets/rubis.jpg';
 
 const Login = () => {
   const [login, setLogin] = useState('');
@@ -119,50 +27,143 @@ const Login = () => {
   };
 
   return (
-    <LoginContainer maxWidth={false}>
-      <LoginPaper elevation={3}>
-        <Logo>
-          <LockOutlined style={{ fontSize: 40, color: 'white' }} />
-        </Logo>
-        <Typography variant="h4" gutterBottom style={{ color: primaryColor, fontWeight: 'bold', marginBottom: 8 }}>
-          Welcome Back
-        </Typography>
-        <Typography variant="body1" gutterBottom style={{ marginBottom: 24, textAlign: 'center', color: '#555' }}>
-          Enter your credentials to access your account
-        </Typography>
-        <FormBox component="form" onSubmit={handleSubmit}>
-          <StyledTextField
-            label="Username or Email"
-            variant="outlined"
-            value={login}
-            onChange={(e) => setLogin(e.target.value)}
-            fullWidth
-            required
-            InputProps={{
-              startAdornment: <PersonOutline style={{ color: primaryColor, marginRight: 8 }} />,
-            }}
-          />
-          <StyledTextField
-            label="Password"
-            type="password"
-            variant="outlined"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-            required
-            InputProps={{
-              startAdornment: <LockOutlined style={{ color: primaryColor, marginRight: 8 }} />,
-            }}
-          />
-          <StyledButton type="submit" variant="contained" size="large" fullWidth>
-            Login
-          </StyledButton>
-        </FormBox>
-        <SignUpLink to="/signup">
-          Don't have an account? Sign up here
-        </SignUpLink>
-      </LoginPaper>
-    </LoginContainer>
+    <div className="min-h-screen w-full flex items-center justify-center relative">
+      {/* Enhanced Background */}
+      <div className="fixed inset-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${backgroundImage})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/95 to-gray-800/95" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff10_1px,transparent_1px),linear-gradient(to_bottom,#ffffff10_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+      </div>
+
+      {/* Main Container */}
+      <div className="relative w-full max-w-xl mx-4">
+        {/* Main Card */}
+        <div className="relative bg-white rounded-3xl shadow-2xl p-12">
+          {/* Logo Section */}
+          <div className="relative mb-10">
+            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-600 flex items-center justify-center shadow-xl">
+              <LockOutlined className="text-white transform scale-150" />
+            </div>
+          </div>
+
+          {/* Title Section */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-800 mb-3">
+              Welcome Back
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Enter your credentials to access your account
+            </p>
+          </div>
+
+          {/* Enhanced White Form Section */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Username Input */}
+            <div className="relative group">
+              <TextField
+                label="Username or Email"
+                variant="outlined"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
+                fullWidth
+                required
+                InputProps={{
+                  startAdornment: <PersonOutline className="text-emerald-600 mr-3" />,
+                  className: "bg-gray-50 rounded-xl shadow-sm hover:bg-white transition-colors duration-200",
+                  style: { 
+                    borderRadius: '0.75rem',
+                    border: '2px solid #f3f4f6',
+                  }
+                }}
+                InputLabelProps={{
+                  className: "text-gray-500"
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#10b981',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#10b981',
+                      borderWidth: '2px',
+                    },
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': {
+                    color: '#10b981',
+                  },
+                }}
+              />
+            </div>
+
+            {/* Password Input */}
+            <div className="relative group">
+              <TextField
+                label="Password"
+                type="password"
+                variant="outlined"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                fullWidth
+                required
+                InputProps={{
+                  startAdornment: <LockOutlined className="text-emerald-600 mr-3" />,
+                  className: "bg-gray-50 rounded-xl shadow-sm hover:bg-white transition-colors duration-200",
+                  style: { 
+                    borderRadius: '0.75rem',
+                    border: '2px solid #f3f4f6',
+                  }
+                }}
+                InputLabelProps={{
+                  className: "text-gray-500"
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#10b981',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#10b981',
+                      borderWidth: '2px',
+                    },
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': {
+                    color: '#10b981',
+                  },
+                }}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="mt-10">
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                className="py-4 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-semibold text-lg text-white shadow-lg hover:shadow-xl transform transition-all duration-200 hover:scale-[1.01]"
+              >
+                Sign In
+              </Button>
+            </div>
+          </form>
+
+          {/* Sign Up Link */}
+          <div className="mt-8 text-center">
+            <Link 
+              to="/signup" 
+              className="text-gray-600 hover:text-emerald-600 transition-colors duration-200"
+            >
+              Don't have an account? {' '}
+              <span className="font-semibold">
+                Sign up here
+              </span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

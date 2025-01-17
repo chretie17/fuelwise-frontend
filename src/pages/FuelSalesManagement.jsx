@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_BASE_URL } from '../api';
 import {
   Container,
   Button,
@@ -11,7 +10,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TextField,
   Dialog,
   DialogActions,
   DialogContent,
@@ -26,6 +24,7 @@ import {
   IconButton,
   Box,
   Tooltip,
+  TextField,
 } from '@mui/material';
 import { styled } from '@mui/system';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -35,10 +34,11 @@ import {
   Delete as DeleteIcon,
   LocalGasStation as FuelIcon,
   AttachMoney as PriceIcon,
-  CalendarToday as DateIcon,
 } from '@mui/icons-material';
 
-// Create a custom theme
+const API_BASE_URL = 'http://localhost:5000/api'; // Replace with your actual API URL
+
+// Theme for styling
 const theme = createTheme({
   palette: {
     primary: {
@@ -54,7 +54,7 @@ const theme = createTheme({
   },
 });
 
-// Styled components
+// Styled container
 const StyledContainer = styled(Container)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   padding: theme.spacing(3),
@@ -86,12 +86,12 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const FuelSalesManagement = () => {
-  const [sales, setSales] = useState([]);
-  const [inventory, setInventory] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [branchName, setBranchName] = useState(''); // State for branch name
+  const [sales, setSales] = useState([]); // State for sales data
+  const [inventory, setInventory] = useState([]); // State for inventory
+  const [openDialog, setOpenDialog] = useState(false); // State for dialog visibility
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' }); // Snackbar state
   const [currentSale, setCurrentSale] = useState({
-    id: '',
     fuel_type: '',
     liters: '',
     sale_price_per_liter: '',
@@ -99,76 +99,80 @@ const FuelSalesManagement = () => {
     payment_mode: '',
   });
 
-  // Simulating getting managerBranchId from logged-in user's session
-  const managerBranchId = localStorage.getItem('branch') ; // Assuming '1' is the default branch for testing
+  // Get branch ID from local storage
+  const managerBranchId = localStorage.getItem('branch'); // Assuming '3' is set for testing
 
   useEffect(() => {
-    fetchSales(managerBranchId);
-    fetchInventory(managerBranchId);
+    if (managerBranchId) {
+      fetchBranchDetails(managerBranchId);
+      fetchSales(managerBranchId);
+      fetchInventory(managerBranchId);
+    }
   }, [managerBranchId]);
 
-  const fetchSales = async (branch_id) => {
+  // Fetch branch details
+  const fetchBranchDetails = async (branchId) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/fuel-sales`, {
-        params: { branch_id }, // Fetch sales only for the manager's branch
-      });
-      setSales(response.data);
+      const response = await axios.get(`${API_BASE_URL}/branches/${branchId}`);
+      setBranchName(response.data.name || 'Unknown Branch');
     } catch (error) {
-      console.error('Error fetching sales:', error);
-      showSnackbar('Error fetching sales.', 'error');
+      console.error('Error fetching branch details:', error);
+      setBranchName('No Branch Found');
     }
   };
 
-  const fetchInventory = async (branch_id) => {
+  // Fetch sales data
+  const fetchSales = async (branchId) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/inventory/branch/${branch_id}`);  // Use the correct route
+      const response = await axios.get(`${API_BASE_URL}/fuel-sales`, {
+        params: { branch_id: branchId },
+      });
+      setSales(response.data.length ? response.data : []);
+    } catch (error) {
+      console.error('Error fetching sales:', error);
+      setSales([]);
+    }
+  };
+
+  // Fetch inventory data
+  const fetchInventory = async (branchId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/inventory/branch/${branchId}`);
       setInventory(response.data);
     } catch (error) {
       console.error('Error fetching inventory:', error);
-      showSnackbar('Error fetching inventory.', 'error');
+      setInventory([]);
     }
   };
-  
 
-  const handleOpenDialog = (
-    sale = { id: '', fuel_type: '', liters: '', sale_price_per_liter: '', sale_date: '', payment_mode: '' }
-  ) => {
+  // Open the dialog for adding/editing a sale
+  const handleOpenDialog = (sale = { fuel_type: '', liters: '', sale_price_per_liter: '', sale_date: '', payment_mode: '' }) => {
     setCurrentSale(sale);
-    setOpen(true);
+    setOpenDialog(true);
   };
 
+  // Close the dialog
   const handleCloseDialog = () => {
-    setOpen(false);
-    setCurrentSale({ id: '', fuel_type: '', liters: '', sale_price_per_liter: '', sale_date: '', payment_mode: '' });
+    setOpenDialog(false);
+    setCurrentSale({ fuel_type: '', liters: '', sale_price_per_liter: '', sale_date: '', payment_mode: '' });
   };
 
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCurrentSale((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFuelTypeChange = (e) => {
-    const fuel_type = e.target.value;
-    const selectedFuel = inventory.find((item) => item.fuel_type === fuel_type);
-    const sale_price_per_liter = selectedFuel ? selectedFuel.unit_price : '';
-
-    setCurrentSale((prev) => ({
-      ...prev,
-      fuel_type,
-      sale_price_per_liter,
-    }));
-  };
-
+  // Save a sale (add or edit)
   const handleSaveSale = async () => {
     try {
-      if (!currentSale.sale_date) {
-        throw new Error("Sale date is missing or invalid.");
+      if (!currentSale.sale_date || !currentSale.fuel_type || !currentSale.liters || !currentSale.payment_mode) {
+        throw new Error('Please fill in all required fields.');
       }
 
       const saleData = {
         ...currentSale,
-        branch_id: managerBranchId, // Ensure the sale is recorded under the manager's branch
-        sale_date: currentSale.sale_date, // No transformation needed, it's already in YYYY-MM-DD format
+        branch_id: managerBranchId,
       };
 
       if (currentSale.id) {
@@ -183,22 +187,12 @@ const FuelSalesManagement = () => {
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving sale:', error);
-      showSnackbar(error.message || 'Error saving sale.', 'error');
+      showSnackbar('Error saving sale.', 'error');
     }
   };
 
-  const handleDeleteSale = async (id) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/fuel-sales/${id}`);
-      showSnackbar('Fuel sale deleted successfully.', 'success');
-      fetchSales(managerBranchId);
-    } catch (error) {
-      console.error('Error deleting sale:', error);
-      showSnackbar('Error deleting sale.', 'error');
-    }
-  };
-
-  const showSnackbar = (message, severity) => {
+  // Show snackbar
+  const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
 
@@ -209,6 +203,10 @@ const FuelSalesManagement = () => {
   return (
     <ThemeProvider theme={theme}>
       <StyledContainer>
+        {/* Branch name */}
+        <Typography variant="h5" color="primary" gutterBottom>
+          Branch: {branchName || 'Loading...'}
+        </Typography>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h4" color="primary">
             Fuel Sales Management
@@ -217,57 +215,56 @@ const FuelSalesManagement = () => {
             Record New Sale
           </Button>
         </Box>
-        <StyledTableContainer component={Paper}>
-          <Table>
-            <StyledTableHead>
-              <TableRow>
-                <TableCell>Fuel Type</TableCell>
-                <TableCell>Liters</TableCell>
-                <TableCell>Sale Price per Liter (RWF)</TableCell>
-                <TableCell>Total Revenue (RWF)</TableCell>
-                <TableCell>Sale Date</TableCell>
-                <TableCell>Payment Mode</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </StyledTableHead>
-            <TableBody>
-              {sales.map((sale) => (
-                <StyledTableRow key={sale.id}>
-                  <TableCell>
-                    <Box display="flex" alignItems="center">
-                      <FuelIcon color="primary" sx={{ mr: 1 }} />
-                      {sale.fuel_type}
-                    </Box>
-                  </TableCell>
-                  <TableCell>{sale.liters}</TableCell>
-                  <TableCell>
-                    <Box display="flex" alignItems="center">
-                      <PriceIcon color="primary" sx={{ mr: 1 }} />
-                      {sale.sale_price_per_liter}
-                    </Box>
-                  </TableCell>
-                  <TableCell>{sale.total_revenue}</TableCell>
-                  <TableCell>{sale.sale_date}</TableCell>
-                  <TableCell>{sale.payment_mode}</TableCell>
-                  <TableCell>
-                    <Tooltip title="Edit">
-                      <IconButton color="primary" onClick={() => handleOpenDialog(sale)}>
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton color="secondary" onClick={() => handleDeleteSale(sale.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </StyledTableContainer>
 
-        <Dialog open={open} onClose={handleCloseDialog}>
+        {/* Sales table */}
+        {sales.length > 0 ? (
+          <StyledTableContainer component={Paper}>
+            <Table>
+              <StyledTableHead>
+                <TableRow>
+                  <TableCell>Fuel Type</TableCell>
+                  <TableCell>Liters</TableCell>
+                  <TableCell>Sale Price per Liter (RWF)</TableCell>
+                  <TableCell>Total Revenue (RWF)</TableCell>
+                  <TableCell>Sale Date</TableCell>
+                  <TableCell>Payment Mode</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </StyledTableHead>
+              <TableBody>
+                {sales.map((sale) => (
+                  <StyledTableRow key={sale.id}>
+                    <TableCell>{sale.fuel_type}</TableCell>
+                    <TableCell>{sale.liters}</TableCell>
+                    <TableCell>{sale.sale_price_per_liter}</TableCell>
+                    <TableCell>{sale.total_revenue}</TableCell>
+                    <TableCell>{sale.sale_date}</TableCell>
+                    <TableCell>{sale.payment_mode}</TableCell>
+                    <TableCell>
+                      <Tooltip title="Edit">
+                        <IconButton color="primary" onClick={() => handleOpenDialog(sale)}>
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton color="secondary">
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </StyledTableContainer>
+        ) : (
+          <Typography variant="body1" color="textSecondary" align="center">
+            No sales data available.
+          </Typography>
+        )}
+
+        {/* Dialog for adding/editing sales */}
+        <Dialog open={openDialog} onClose={handleCloseDialog}>
           <DialogTitle>{currentSale.id ? 'Edit Sale' : 'Record New Sale'}</DialogTitle>
           <DialogContent>
             <FormControl fullWidth margin="dense">
@@ -275,8 +272,8 @@ const FuelSalesManagement = () => {
               <Select
                 name="fuel_type"
                 value={currentSale.fuel_type}
-                onChange={handleFuelTypeChange}
-                startAdornment={<FuelIcon color="primary" />}
+                onChange={handleInputChange}
+                fullWidth
               >
                 {inventory.map((item) => (
                   <MenuItem key={item.id} value={item.fuel_type}>
@@ -293,34 +290,24 @@ const FuelSalesManagement = () => {
               value={currentSale.liters}
               onChange={handleInputChange}
               fullWidth
-              InputProps={{
-                startAdornment: <FuelIcon color="primary" />,
-              }}
             />
             <TextField
               margin="dense"
-              label="Sale Price per Liter (RWF)"
+              label="Sale Price per Liter"
               name="sale_price_per_liter"
               value={currentSale.sale_price_per_liter}
               onChange={handleInputChange}
               fullWidth
-              disabled
-              InputProps={{
-                startAdornment: <PriceIcon color="primary" />,
-              }}
             />
             <TextField
               margin="dense"
               label="Sale Date"
               name="sale_date"
-              type="date" // Ensure date-only input
+              type="date"
               value={currentSale.sale_date}
               onChange={handleInputChange}
               fullWidth
               InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: <DateIcon color="primary" />,
-              }}
             />
             <FormControl fullWidth margin="dense">
               <InputLabel>Payment Mode</InputLabel>
@@ -328,7 +315,7 @@ const FuelSalesManagement = () => {
                 name="payment_mode"
                 value={currentSale.payment_mode}
                 onChange={handleInputChange}
-                startAdornment={<PriceIcon color="primary" />}
+                fullWidth
               >
                 <MenuItem value="Cash">Cash</MenuItem>
                 <MenuItem value="Card">Card</MenuItem>
@@ -338,12 +325,13 @@ const FuelSalesManagement = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button onClick={handleSaveSale} color="primary" startIcon={<AddIcon />}>
+            <Button onClick={handleSaveSale} color="primary">
               Save
             </Button>
           </DialogActions>
         </Dialog>
 
+        {/* Snackbar for notifications */}
         <Snackbar
           open={snackbar.open}
           autoHideDuration={3000}

@@ -2,10 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, Divider, IconButton, Tooltip } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { 
-  BarChart, Group, Inventory2, LocalGasStation, Payments, 
-  ShoppingBasket, Description, LogoutRounded, ChevronLeft, ChevronRight,
-  Assessment, AddBusiness, Gavel, LocalShipping
+import {
+  Dashboard,
+  People,
+  Inventory,
+  LocalGasStation,
+  PointOfSale,
+  ShoppingCart,
+  Assessment,
+  GavelRounded,
+  BusinessRounded,
+  DescriptionRounded,
+  LogoutRounded,
+  ChevronLeft,
+  ChevronRight,
+  Store,
+  LocalShipping,
+  AddBusiness,
+  Assignment,
+  ReceiptLong
 } from '@mui/icons-material';
 
 const primaryColor = '#007547';
@@ -24,12 +39,28 @@ const SidebarContainer = styled(Box)(({ theme, isopen }) => ({
   flexDirection: 'column',
   boxShadow: '2px 0px 20px rgba(0, 117, 71, 0.1)',
   transition: 'all 0.3s ease-in-out',
-  overflow: 'hidden',
-  '&:hover': {
-    width: isopen ? 260 : 80,
-  },
   zIndex: theme.zIndex.drawer,
 }));
+
+const ScrollableSection = styled(Box)({
+  overflowY: 'auto',
+  overflowX: 'hidden',
+  flex: 1,
+  '&::-webkit-scrollbar': {
+    width: '6px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: '#f1f1f1',
+    borderRadius: '10px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    background: `${primaryColor}40`,
+    borderRadius: '10px',
+    '&:hover': {
+      background: `${primaryColor}60`,
+    },
+  },
+});
 
 const Logo = styled(Typography)(({ theme, isopen }) => ({
   fontWeight: 800,
@@ -105,33 +136,32 @@ const Sidebar = () => {
 
   const menuItems = {
     admin: [
-      { text: 'Dashboard', icon: <BarChart />, path: '/dashboard' },
-      { text: 'Manage Users', icon: <Group />, path: '/users' },
-      { text: 'Inventory', icon: <Inventory2 />, path: '/inventory' },
-      { text: 'Suppliers', icon: <LocalGasStation />, path: '/suppliers' },
-      { text: 'Fuel Sales', icon: <Payments />, path: '/admin-sales' },
-      { text: 'Fuel Purchases', icon: <ShoppingBasket />, path: '/admin-purchase' },
-      { text: 'Procurement', icon: <Assessment />, path: '/admin-procurement' },
-      { text: 'Evaluation', icon: <Gavel />, path: '/admin-evaluation' },
-      { text: 'Branches', icon: <Gavel />, path: '/admin-branches' },
-      { text: 'Reports', icon: <Gavel />, path: '/admin-reports' },
-
+      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+      { text: 'Manage Users', icon: <People />, path: '/users' },
+      { text: 'Inventory', icon: <Inventory />, path: '/inventory' },
+      { text: 'Suppliers', icon: <BusinessRounded />, path: '/suppliers' },
+      { text: 'Fuel Sales', icon: <PointOfSale />, path: '/admin-sales' },
+      { text: 'Fuel Purchases', icon: <ShoppingCart />, path: '/admin-purchase' },
+      { text: 'Procurement', icon: <Assignment />, path: '/admin-procurement' },
+      { text: 'Evaluation', icon: <Assessment />, path: '/admin-evaluation' },
+      { text: 'Branches', icon: <Store />, path: '/admin-branches' },
+      { text: 'Reports', icon: <ReceiptLong />, path: '/admin-reports' },
     ],
     manager: [
-      { text: 'Dashboard', icon: <BarChart />, path: '/dashboard' },
-      { text: 'Sales', icon: <LocalGasStation />, path: '/fuel-sales' },
-      { text: 'Fuel Purchases', icon: <ShoppingBasket />, path: '/fuel-purchases' },
+      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+      { text: 'Sales', icon: <PointOfSale />, path: '/fuel-sales' },
+      { text: 'Fuel Purchases', icon: <ShoppingCart />, path: '/fuel-purchases' },
     ],
     supplier: [
-      { text: 'Dashboard', icon: <BarChart />, path: '/dashboard' },
+      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
       { text: 'Add Details', icon: <AddBusiness />, path: '/add-supplier-details' },
-      { text: 'Bidding', icon: <Gavel />, path: '/supplier-bidding' },
+      { text: 'Bidding', icon: <GavelRounded />, path: '/supplier-bidding' },
       { text: 'Orders', icon: <LocalShipping />, path: '/orders' },
     ],
   };
   
   const renderLinks = () => {
-    const items = menuItems[role] || [{ text: 'Dashboard', icon: <BarChart />, path: '/dashboard' }];
+    const items = menuItems[role] || [{ text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' }];
     return items.map((item) => (
       <Tooltip title={isOpen ? "" : item.text} placement="right" key={item.text}>
         <StyledListItem
@@ -154,10 +184,11 @@ const Sidebar = () => {
         {isOpen ? <ChevronLeft /> : <ChevronRight />}
       </ToggleButton>
       <StyledDivider />
-      <List>
-        {renderLinks()}
-      </List>
-      <Box flexGrow={1} />
+      <ScrollableSection>
+        <List>
+          {renderLinks()}
+        </List>
+      </ScrollableSection>
       <StyledDivider />
       <Tooltip title={isOpen ? "" : "Logout"} placement="right">
         <StyledListItem button onClick={handleLogout}>

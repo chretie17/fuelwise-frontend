@@ -10,82 +10,11 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Area,
+  AreaChart,
 } from "recharts";
 import axios from "axios";
 import { API_BASE_URL } from "../api";
-
-// CSS styles
-const styles = {
-  section: {
-    padding: "2rem",
-    backgroundColor: "#f9fafb",
-    borderRadius: "12px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    maxWidth: "1200px",
-    margin: "0 auto",
-  },
-  title: {
-    fontSize: "1.875rem",
-    fontWeight: "bold",
-    color: "#059669",
-    marginBottom: "2rem",
-  },
-  topRow: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "1.5rem",
-    marginBottom: "2rem",
-  },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: "8px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-    padding: "1.5rem",
-    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-  },
-  cardHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "1rem",
-  },
-  cardTitle: {
-    color: "#059669",
-    fontSize: "1.1rem",
-    fontWeight: "600",
-  },
-  cardIcon: {
-    color: "#059669",
-    fontSize: "1.5rem",
-  },
-  cardContent: {
-    textAlign: "center",
-  },
-  cardValue: {
-    color: "#111827",
-    fontSize: "1.8rem",
-    fontWeight: "700",
-    marginBottom: "0.5rem",
-  },
-  cardDescription: {
-    color: "#6B7280",
-    fontSize: "0.9rem",
-  },
-  chartSection: {
-    backgroundColor: "#ffffff",
-    borderRadius: "8px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-    padding: "1.5rem",
-    marginTop: "2rem",
-  },
-  chartHeader: {
-    textAlign: "center",
-    color: "#059669",
-    fontSize: "1.3rem",
-    fontWeight: "600",
-    marginBottom: "1rem",
-  },
-};
 
 export default function Dashboard() {
   const [totalFuelSold, setTotalFuelSold] = useState(0);
@@ -104,7 +33,10 @@ export default function Dashboard() {
   });
 
   const numberFormatter = (number) => {
-    return new Intl.NumberFormat("en-US", { notation: "compact", compactDisplay: "short" }).format(number);
+    return new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      compactDisplay: "short",
+    }).format(number);
   };
 
   useEffect(() => {
@@ -152,8 +84,7 @@ export default function Dashboard() {
   const fetchAvailableFuel = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/dashboard/available-fuel`);
-      const totalAvailableFuel = response.data.available_fuel;
-      setAvailableFuel(totalAvailableFuel || 0);
+      setAvailableFuel(response.data.available_fuel || 0);
     } catch (error) {
       console.error("Error fetching available fuel:", error);
     }
@@ -192,130 +123,242 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <div
-          style={{
-            animation: "spin 1s linear infinite",
-            border: "4px solid #f3f3f3",
-            borderTop: "4px solid #059669",
-            borderRadius: "50%",
-            width: "50px",
-            height: "50px",
-          }}
-        ></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="p-8 bg-white rounded-3xl shadow-xl">
+          <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div
-        style={{
-          backgroundColor: "#FEE2E2",
-          border: "1px solid #F87171",
-          color: "#B91C1C",
-          padding: "1rem",
-          borderRadius: "0.375rem",
-          margin: "1rem",
-        }}
-      >
-        <strong>Error!</strong> {error}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <div className="w-full max-w-2xl p-8 bg-red-50 border-2 border-red-200 rounded-3xl shadow-lg">
+          <div className="flex items-center space-x-3 text-red-700">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-bold text-lg">Error!</span>
+          </div>
+          <p className="mt-2 text-red-600">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.section}>
-      <h1 style={styles.title}>Fuel Station Dashboard</h1>
-      <div style={styles.topRow}>
-        <Card
-          title="Total Fuel Sold"
-          value={`${numberFormatter(totalFuelSold)} Liters`}
-          icon={<IoMdCash />}
-          description="Fuel sold to customers"
-        />
-        <Card
-          title="Total Revenue"
-          value={currencyFormatter.format(totalRevenue)}
-          icon={<IoMdCash />}
-          description="Revenue from fuel sales"
-        />
-        <Card
-          title="Available Fuel"
-          value={`${numberFormatter(availableFuel)} Liters`}
-          icon={<MdTimer />}
-          description="Fuel available in stock"
-        />
-        <Card
-          title="Total Purchase Costs"
-          value={currencyFormatter.format(totalPurchaseCosts)}
-          icon={<IoMdCash />}
-          description="Cost of fuel purchased"
-        />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-emerald-50 p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
+          <div className="space-y-2">
+            <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">
+              Fuel Station Dashboard
+            </h1>
+            <p className="text-gray-600">Real-time monitoring and analytics</p>
+          </div>
+          <button 
+            onClick={fetchData}
+            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium w-full lg:w-auto text-center"
+          >
+            Refresh Data
+          </button>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatsCard
+            title="Total Fuel Sold"
+            value={`${numberFormatter(totalFuelSold)} Liters`}
+            icon={<IoMdCash className="w-7 h-7" />}
+            description="Fuel sold to customers"
+            trend="+12.5%"
+            trendUp={true}
+          />
+          <StatsCard
+            title="Total Revenue"
+            value={currencyFormatter.format(totalRevenue)}
+            icon={<IoMdCash className="w-7 h-7" />}
+            description="Revenue from fuel sales"
+            trend="+8.3%"
+            trendUp={true}
+          />
+          <StatsCard
+            title="Available Fuel"
+            value={`${numberFormatter(availableFuel)} Liters`}
+            icon={<MdTimer className="w-7 h-7" />}
+            description="Fuel available in stock"
+            trend="-2.4%"
+            trendUp={false}
+          />
+          <StatsCard
+            title="Total Purchase Costs"
+            value={currencyFormatter.format(totalPurchaseCosts)}
+            icon={<IoMdCash className="w-7 h-7" />}
+            description="Cost of fuel purchased"
+            trend="+5.7%"
+            trendUp={true}
+          />
+        </div>
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <ChartCard
+            title="Fuel Sold by Type"
+            data={fuelSoldByType}
+            dataKey="fuel_type"
+            valueKey="fuel_sold"
+            numberFormatter={numberFormatter}
+          />
+          <ChartCard
+            title="Fuel Sold by Date"
+            data={fuelSoldByDate}
+            dataKey="sale_date"
+            valueKey="fuel_sold"
+            numberFormatter={numberFormatter}
+          />
+        </div>
       </div>
-
-      <ChartSection
-        title="Fuel Sold by Type"
-        data={fuelSoldByType}
-        dataKey="fuel_type"
-        valueKey="fuel_sold"
-        numberFormatter={numberFormatter}
-      />
-
-      <ChartSection
-        title="Fuel Sold by Date"
-        data={fuelSoldByDate}
-        dataKey="sale_date"
-        valueKey="fuel_sold"
-        numberFormatter={numberFormatter}
-      />
     </div>
   );
 }
 
-const Card = ({ title, value, icon, description }) => (
-  <div style={styles.card}>
-    <div style={styles.cardHeader}>
-      <h4 style={styles.cardTitle}>{title}</h4>
-      <div style={styles.cardIcon}>{icon}</div>
+const StatsCard = ({ title, value, icon, description, trend, trendUp }) => (
+  <div className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 lg:p-8 border border-gray-100">
+    <div className="flex justify-between items-start mb-6">
+      <div className="p-4 bg-emerald-50 rounded-2xl">
+        <div className="text-emerald-600">{icon}</div>
+      </div>
+      <span className={`px-3 py-1.5 text-sm font-semibold rounded-xl flex items-center ${
+        trendUp ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+      }`}>
+        {trendUp ? (
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        ) : (
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+          </svg>
+        )}
+        {trend}
+      </span>
     </div>
-    <div style={styles.cardContent}>
-      <h2 style={styles.cardValue}>{value}</h2>
-      <p style={styles.cardDescription}>{description}</p>
+    <div className="space-y-3">
+      <h4 className="text-lg text-gray-600 font-medium">{title}</h4>
+      <div className="text-2xl lg:text-3xl font-bold text-gray-900">{value}</div>
+      <p className="text-sm text-gray-500">{description}</p>
     </div>
   </div>
 );
 
-const ChartSection = ({ title, data, dataKey, valueKey, numberFormatter, width, height }) => (
-  <div style={styles.chartSection}>
-    <h3 style={styles.chartHeader}>{title}</h3>
-    <ResponsiveContainer width={width || "100%"} height={height || 300}>
-      <LineChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 10 }} // Add margins to make sure the lines fit
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis 
-          dataKey={dataKey} 
-          interval={1} // Adjust the interval to reduce the number of X-axis ticks
-          tick={{ fontSize: 12 }} 
-        />
-       <YAxis
-  tickFormatter={(tick) => numberFormatter(tick)}
-  domain={[0, 300]} // Set Y-axis to range from 0 to 200
-/>
+const ChartCard = ({ title, data, dataKey, valueKey, numberFormatter }) => (
+  <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+    <div className="mb-8">
+      <h3 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">
+        {title}
+      </h3>
+      <p className="text-gray-500 mt-2">Performance metrics</p>
+    </div>
+    
 
-        <Tooltip formatter={(value) => numberFormatter(value)} />
-        <Legend />
-        <Line
-          type="monotone"
-          dataKey={valueKey}
-          stroke="#10B981"
-          strokeWidth={2}
-          dot={{ r: 2 }} // Make dots smaller to reduce clutter
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="h-[400px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        >
+          <defs>
+            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#059669" stopOpacity={0.2}/>
+              <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          
+          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+          
+          <XAxis
+            dataKey={dataKey}
+            tick={{ fill: '#6B7280', fontSize: 12 }}
+            axisLine={{ stroke: '#D1D5DB' }}
+            tickLine={{ stroke: '#D1D5DB' }}
+            dy={10}
+          />
+          
+          <YAxis
+            tickFormatter={(tick) => numberFormatter(tick)}
+            domain={[0, 'auto']}
+            tick={{ fill: '#6B7280', fontSize: 12 }}
+            axisLine={{ stroke: '#D1D5DB' }}
+            tickLine={{ stroke: '#D1D5DB' }}
+            dx={-10}
+          />
+          
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'white',
+              border: 'none',
+              borderRadius: '1rem',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+              padding: '1rem',
+            }}
+            formatter={(value) => [numberFormatter(value), 'Value']}
+            labelStyle={{ color: '#374151', fontWeight: 'bold' }}
+            cursor={{ stroke: '#059669', strokeWidth: 1, strokeDasharray: '5 5' }}
+          />
+          
+          <Legend
+            wrapperStyle={{
+              paddingTop: '2rem',
+            }}
+            formatter={(value) => (
+              <span className="text-gray-600 font-medium">{value}</span>
+            )}
+          />
+          
+          <Area
+            type="monotone"
+            dataKey={valueKey}
+            stroke="#059669"
+            strokeWidth={3}
+            fill="url(#colorValue)"
+            dot={{ r: 4, fill: '#059669', strokeWidth: 2, stroke: '#fff' }}
+            activeDot={{ 
+              r: 8, 
+              fill: '#059669',
+              strokeWidth: 4,
+              stroke: '#fff'
+            }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+
+    <div className="grid grid-cols-3 gap-4 mt-6 p-4 bg-emerald-50 rounded-2xl">
+      <div className="text-center">
+        
+      <div className="grid grid-cols-3 gap-4 mt-6 p-4 bg-emerald-50 rounded-2xl">
+      <div className="text-center">
+        <p className="text-sm text-gray-500">Average</p>
+        <p className="text-lg font-bold text-emerald-600">
+          {numberFormatter(data.reduce((acc, curr) => acc + curr[valueKey], 0) / data.length)}
+        </p>
+      </div>
+      <div className="text-center border-l border-r border-emerald-200">
+        <p className="text-sm text-gray-500">Maximum</p>
+        <p className="text-lg font-bold text-emerald-600">
+          {numberFormatter(Math.max(...data.map(item => item[valueKey])))}
+        </p>
+      </div>
+      <div className="text-center">
+        <p className="text-sm text-gray-500">Total</p>
+        <p className="text-lg font-bold text-emerald-600">
+          {numberFormatter(data.reduce((acc, curr) => acc + curr[valueKey], 0))}
+        </p>
+      </div>
+    </div>
+  </div>
+  </div>
   </div>
 );
-
