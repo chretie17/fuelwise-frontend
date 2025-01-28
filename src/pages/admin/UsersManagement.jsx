@@ -1,88 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../api';
-import {
-  Box,
-  Button,
-  Container,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Snackbar,
-  Alert,
-  ThemeProvider,
-  createTheme
-} from '@mui/material';
-import { styled } from '@mui/system';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#007547',
-    },
-  },
-});
-
-const StyledContainer = styled(Container)(({ theme }) => ({
-  backgroundColor: '#f0f8f4',
-  padding: theme.spacing(3),
-  borderRadius: theme.shape.borderRadius,
-  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  margin: theme.spacing(1),
-  '&:hover': {
-    backgroundColor: '#005a35',
-  },
-}));
-
-const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
-  marginTop: theme.spacing(3),
-  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-}));
-
-const StyledTableHead = styled(TableHead)(({ theme }) => ({
-  backgroundColor: '#007547',
-  '& .MuiTableCell-head': {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
-    backgroundColor: '#e8f5e9',
-  },
-  '&:hover': {
-    backgroundColor: '#c8e6c9',
-  },
-}));
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
-  const [branches, setBranches] = useState([]); // State to hold the list of branches
+  const [branches, setBranches] = useState([]);
   const [open, setOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [currentUser, setCurrentUser] = useState({ username: '', email: '', password: '', role: '', branch_id: '' });
 
   useEffect(() => {
     fetchUsers();
-    fetchBranches(); // Fetch branches when the component mounts
+    fetchBranches();
   }, []);
 
   const fetchUsers = async () => {
@@ -156,126 +86,187 @@ const UserManagement = () => {
     setSnackbar({ open: false, message: '', severity: 'success' });
   };
 
+  const styles = {
+    container: "min-h-screen bg-[#f0f8f4] p-8",
+    innerContainer: "max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-8",
+    header: "flex justify-between items-center mb-8",
+    title: "text-3xl font-bold text-[#007547]",
+    addButton: "bg-[#007547] hover:bg-[#005a35] text-white px-4 py-2 rounded-md flex items-center",
+    table: "w-full border-collapse rounded-lg overflow-hidden",
+    tableHead: "bg-[#007547]",
+    tableHeadCell: "px-6 py-4 text-left text-sm font-semibold text-white",
+    tableRow: "hover:bg-[#e8f5e9] transition-colors even:bg-[#f0f8f4]",
+    tableCell: "px-6 py-4 text-sm text-gray-700",
+    actionButton: "inline-flex items-center px-3 py-1 rounded-md border mr-2",
+    editButton: "border-[#007547] text-[#007547] hover:bg-[#007547] hover:text-white",
+    deleteButton: "border-red-600 text-red-600 hover:bg-red-600 hover:text-white",
+    dialog: "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50",
+    dialogContent: "bg-white rounded-lg p-6 w-full max-w-md",
+    dialogTitle: "text-xl font-bold text-[#007547] mb-4",
+    formGroup: "mb-4",
+    label: "block text-sm font-medium text-gray-700 mb-1",
+    input: "w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#007547]",
+    select: "w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#007547]",
+    dialogActions: "flex justify-end space-x-2 mt-6",
+    dialogButton: "px-4 py-2 rounded-md",
+    cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-700",
+    saveButton: "bg-[#007547] hover:bg-[#005a35] text-white",
+    snackbar: "fixed bottom-4 right-4 z-50 p-4 rounded-md shadow-lg",
+    snackbarSuccess: "bg-green-100 border border-green-500 text-green-700",
+    snackbarError: "bg-red-100 border border-red-500 text-red-700",
+  };
+
   return (
-    <ThemeProvider theme={theme}>
-      <StyledContainer>
-        <Typography variant="h4" gutterBottom color="primary">
-          User Management
-        </Typography>
-        <StyledButton variant="contained" color="primary" onClick={() => handleOpenDialog()}>
-          Add User
-        </StyledButton>
-        <StyledTableContainer component={Paper}>
-          <Table>
-            <StyledTableHead>
-              <TableRow>
-                <TableCell>Username</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Branch</TableCell> {/* New column to display branch name */}
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </StyledTableHead>
-            <TableBody>
+    <div className={styles.container}>
+      <div className={styles.innerContainer}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>User Management</h1>
+          <button className={styles.addButton} onClick={() => handleOpenDialog()}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add User
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className={styles.table}>
+            <thead className={styles.tableHead}>
+              <tr>
+                <th className={styles.tableHeadCell}>Username</th>
+                <th className={styles.tableHeadCell}>Email</th>
+                <th className={styles.tableHeadCell}>Role</th>
+                <th className={styles.tableHeadCell}>Branch</th>
+                <th className={styles.tableHeadCell}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {users.map((user) => (
-                <StyledTableRow key={user.id}>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>{user.branch_name || 'N/A'}</TableCell> {/* Show branch name if user is associated with a branch */}
-                  <TableCell>
-                    <StyledButton variant="outlined" color="primary" onClick={() => handleOpenDialog(user)}>
+                <tr key={user.id} className={styles.tableRow}>
+                  <td className={styles.tableCell}>{user.username}</td>
+                  <td className={styles.tableCell}>{user.email}</td>
+                  <td className={styles.tableCell}>{user.role}</td>
+                  <td className={styles.tableCell}>{user.branch_name || 'N/A'}</td>
+                  <td className={styles.tableCell}>
+                    <button
+                      className={`${styles.actionButton} ${styles.editButton}`}
+                      onClick={() => handleOpenDialog(user)}
+                    >
+                      <Edit2 className="w-4 h-4 mr-1" />
                       Edit
-                    </StyledButton>
-                    <StyledButton variant="outlined" color="secondary" onClick={() => handleDeleteUser(user.id)}>
+                    </button>
+                    <button
+                      className={`${styles.actionButton} ${styles.deleteButton}`}
+                      onClick={() => handleDeleteUser(user.id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
                       Delete
-                    </StyledButton>
-                  </TableCell>
-                </StyledTableRow>
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        </StyledTableContainer>
+            </tbody>
+          </table>
+        </div>
 
-        <Dialog open={open} onClose={handleCloseDialog}>
-          <DialogTitle>{currentUser.id ? 'Edit User' : 'Add User'}</DialogTitle>
-          <DialogContent>
-            <TextField
-              margin="dense"
-              label="Username"
-              name="username"
-              value={currentUser.username}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              margin="dense"
-              label="Email"
-              name="email"
-              value={currentUser.email}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              margin="dense"
-              label="Password"
-              name="password"
-              type="password"
-              value={currentUser.password}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Role</InputLabel>
-              <Select
-                name="role"
-                value={currentUser.role}
-                onChange={handleInputChange}
-              >
-                <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="manager">Manager</MenuItem>
-                <MenuItem value="supplier">Supplier</MenuItem>
-              </Select>
-            </FormControl>
-
-            {/* Only show branch selection if the role is "manager" */}
-            {currentUser.role === 'manager' && (
-              <FormControl fullWidth margin="dense">
-                <InputLabel>Branch</InputLabel>
-                <Select
-                  name="branch_id"
-                  value={currentUser.branch_id}
+        {open && (
+          <div className={styles.dialog}>
+            <div className={styles.dialogContent}>
+              <h2 className={styles.dialogTitle}>
+                {currentUser.id ? 'Edit User' : 'Add User'}
+              </h2>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Username</label>
+                <input
+                  className={styles.input}
+                  name="username"
+                  value={currentUser.username}
+                  onChange={handleInputChange}
+                  placeholder="Enter username"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Email</label>
+                <input
+                  className={styles.input}
+                  name="email"
+                  type="email"
+                  value={currentUser.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter email"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Password</label>
+                <input
+                  className={styles.input}
+                  name="password"
+                  type="password"
+                  value={currentUser.password}
+                  onChange={handleInputChange}
+                  placeholder="Enter password"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Role</label>
+                <select
+                  className={styles.select}
+                  name="role"
+                  value={currentUser.role}
                   onChange={handleInputChange}
                 >
-                  {branches.map((branch) => (
-                    <MenuItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button onClick={handleSaveUser} color="primary">
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
+                  <option value="">Select role</option>
+                  <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
+                  <option value="supplier">Supplier</option>
+                </select>
+              </div>
+              {currentUser.role === 'manager' && (
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Branch</label>
+                  <select
+                    className={styles.select}
+                    name="branch_id"
+                    value={currentUser.branch_id}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Select branch</option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className={styles.dialogActions}>
+                <button
+                  className={`${styles.dialogButton} ${styles.cancelButton}`}
+                  onClick={handleCloseDialog}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={`${styles.dialogButton} ${styles.saveButton}`}
+                  onClick={handleSaveUser}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={3000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        {snackbar.open && (
+          <div
+            className={`${styles.snackbar} ${
+              snackbar.severity === 'success' ? styles.snackbarSuccess : styles.snackbarError
+            }`}
+            onClick={handleCloseSnackbar}
+          >
             {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </StyledContainer>
-    </ThemeProvider>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

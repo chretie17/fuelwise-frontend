@@ -339,24 +339,8 @@ const ChartCard = ({ title, data, dataKey, valueKey, numberFormatter }) => (
       <div className="text-center">
         
       <div className="grid grid-cols-3 gap-4 mt-6 p-4 bg-emerald-50 rounded-2xl">
-      <div className="text-center">
-        <p className="text-sm text-gray-500">Average</p>
-        <p className="text-lg font-bold text-emerald-600">
-          {numberFormatter(data.reduce((acc, curr) => acc + curr[valueKey], 0) / data.length)}
-        </p>
-      </div>
-      <div className="text-center border-l border-r border-emerald-200">
-        <p className="text-sm text-gray-500">Maximum</p>
-        <p className="text-lg font-bold text-emerald-600">
-          {numberFormatter(Math.max(...data.map(item => item[valueKey])))}
-        </p>
-      </div>
-      <div className="text-center">
-        <p className="text-sm text-gray-500">Total</p>
-        <p className="text-lg font-bold text-emerald-600">
-          {numberFormatter(data.reduce((acc, curr) => acc + curr[valueKey], 0))}
-        </p>
-      </div>
+      
+      
     </div>
   </div>
   </div>

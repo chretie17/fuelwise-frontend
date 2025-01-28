@@ -9,6 +9,7 @@ import backgroundImage from '../assets/rubis.jpg';
 const Login = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,10 +20,11 @@ const Login = () => {
       localStorage.setItem('role', response.data.role);
       localStorage.setItem('userId', response.data.userId);
       localStorage.setItem('branch', response.data.branch);
-
+      setError(false);
       navigate('/dashboard');
     } catch (error) {
       console.error('Error logging in:', error);
+      setError(true);
     }
   };
 
@@ -58,6 +60,15 @@ const Login = () => {
               Enter your credentials to access your account
             </p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 text-center">
+              <Typography color="error" className="text-red-500 text-sm">
+                Incorrect username or password
+              </Typography>
+            </div>
+          )}
 
           {/* Enhanced White Form Section */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -151,15 +162,7 @@ const Login = () => {
 
           {/* Sign Up Link */}
           <div className="mt-8 text-center">
-            <Link 
-              to="/signup" 
-              className="text-gray-600 hover:text-emerald-600 transition-colors duration-200"
-            >
-              Don't have an account? {' '}
-              <span className="font-semibold">
-                Sign up here
-              </span>
-            </Link>
+            
           </div>
         </div>
       </div>

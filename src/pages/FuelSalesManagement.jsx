@@ -164,32 +164,71 @@ const FuelSalesManagement = () => {
   };
 
   // Save a sale (add or edit)
+  const handleFuelTypeChange = (e) => {
+    const selectedFuelType = e.target.value;
+    const selectedInventoryItem = inventory.find(
+      (item) => item.fuel_type === selectedFuelType
+    );
+  
+    setCurrentSale((prev) => ({
+      ...prev,
+      fuel_type: selectedFuelType,
+      sale_price_per_liter: selectedInventoryItem ? selectedInventoryItem.unit_price : '',
+      liters: '', // Reset liters when fuel type changes
+    }));
+  };
+  
+  const handleLitersChange = (e) => {
+    const liters = parseFloat(e.target.value) || 0; // Ensure a number
+    setCurrentSale((prev) => ({
+      ...prev,
+      liters,
+      total_revenue: liters * (parseFloat(prev.sale_price_per_liter) || 0), // Calculate total
+    }));
+  };
+  
+  const handleSalePriceChange = (e) => {
+    const sale_price_per_liter = parseFloat(e.target.value) || 0;
+    setCurrentSale((prev) => ({
+      ...prev,
+      sale_price_per_liter,
+      total_revenue: (parseFloat(prev.liters) || 0) * sale_price_per_liter, // Calculate total
+    }));
+  };
+  
   const handleSaveSale = async () => {
     try {
       if (!currentSale.sale_date || !currentSale.fuel_type || !currentSale.liters || !currentSale.payment_mode) {
         throw new Error('Please fill in all required fields.');
       }
-
+  
       const saleData = {
         ...currentSale,
         branch_id: managerBranchId,
       };
-
+  
       if (currentSale.id) {
         await axios.put(`${API_BASE_URL}/fuel-sales/${currentSale.id}`, saleData);
       } else {
         await axios.post(`${API_BASE_URL}/fuel-sales`, saleData);
       }
-
+  
       showSnackbar('Fuel sale saved successfully.', 'success');
       fetchSales(managerBranchId);
       fetchInventory(managerBranchId);
       handleCloseDialog();
     } catch (error) {
+      if (error.response && error.response.data && error.response.data.error) {
+        // Show the server-provided error message
+        showSnackbar(error.response.data.error, 'error');
+      } else {
+        // Fallback to a generic error message
+        showSnackbar('Error saving sale.', 'error');
+      }
       console.error('Error saving sale:', error);
-      showSnackbar('Error saving sale.', 'error');
     }
   };
+  
 
   // Show snackbar
   const showSnackbar = (message, severity = 'success') => {
@@ -266,63 +305,218 @@ const FuelSalesManagement = () => {
         {/* Dialog for adding/editing sales */}
         <Dialog open={openDialog} onClose={handleCloseDialog}>
           <DialogTitle>{currentSale.id ? 'Edit Sale' : 'Record New Sale'}</DialogTitle>
-          <DialogContent>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Fuel Type</InputLabel>
-              <Select
-                name="fuel_type"
-                value={currentSale.fuel_type}
-                onChange={handleInputChange}
-                fullWidth
-              >
-                {inventory.map((item) => (
-                  <MenuItem key={item.id} value={item.fuel_type}>
-                    {item.fuel_type}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              margin="dense"
-              label="Liters"
-              name="liters"
-              type="number"
-              value={currentSale.liters}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              margin="dense"
-              label="Sale Price per Liter"
-              name="sale_price_per_liter"
-              value={currentSale.sale_price_per_liter}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              margin="dense"
-              label="Sale Date"
-              name="sale_date"
-              type="date"
-              value={currentSale.sale_date}
-              onChange={handleInputChange}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-            />
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Payment Mode</InputLabel>
-              <Select
-                name="payment_mode"
-                value={currentSale.payment_mode}
-                onChange={handleInputChange}
-                fullWidth
-              >
-                <MenuItem value="Cash">Cash</MenuItem>
-                <MenuItem value="Card">Card</MenuItem>
-                <MenuItem value="Mobile Money">Mobile Money</MenuItem>
-              </Select>
-            </FormControl>
-          </DialogContent>
+          <DialogContent className="p-8 bg-gradient-to-br from-gray-50 to-white">
+              <div className="space-y-6">
+                {/* Fuel Type Selection */}
+                <div className="space-y-2">
+                  <label className="block text-base font-semibold text-[#007547]">
+                    Fuel Type
+                  </label>
+                  <FormControl fullWidth variant="outlined">
+                    <Select
+                      name="fuel_type"
+                      value={currentSale.fuel_type}
+                      onChange={handleFuelTypeChange}
+                      className="bg-white shadow-sm hover:shadow transition-shadow duration-200"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#e5e7eb',
+                          borderWidth: '2px'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#007547'
+                        },
+                        borderRadius: '0.75rem'
+                      }}
+                    >
+                      {inventory.map((item) => (
+                        <MenuItem key={item.id} value={item.fuel_type}>
+                          <div className="flex items-center py-1.5">
+                            <div className="p-2 rounded-full bg-[#007547]/10 mr-3">
+                              <FuelIcon className="text-[#007547]" />
+                            </div>
+                            <span className="font-medium">{item.fuel_type}</span>
+                          </div>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </div>
+
+                {/* Liters Input */}
+                <div className="space-y-2">
+                  <label className="block text-base font-semibold text-[#007547]">
+                    Liters
+                  </label>
+                  <TextField
+                    name="liters"
+                    type="number"
+                    value={currentSale.liters}
+                    onChange={handleLitersChange}
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Enter amount in liters"
+                    InputProps={{
+                      startAdornment: (
+                        <div className="p-2 rounded-full bg-[#007547]/10 mr-3">
+                          <FuelIcon className="text-[#007547]" />
+                        </div>
+                      )
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '0.75rem',
+                        backgroundColor: 'white',
+                        '& fieldset': {
+                          borderColor: '#e5e7eb',
+                          borderWidth: '2px'
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#007547'
+                        }
+                      }
+                    }}
+                    className="shadow-sm hover:shadow transition-shadow duration-200"
+                  />
+                </div>
+
+                {/* Sale Price */}
+                <div className="space-y-2">
+                  <label className="block text-base font-semibold text-[#007547]">
+                    Sale Price per Liter (RWF)
+                  </label>
+                  <TextField
+                    name="sale_price_per_liter"
+                    type="number"
+                    value={currentSale.sale_price_per_liter}
+                    fullWidth
+                    variant="outlined"
+                    InputProps={{
+                      readOnly: true,
+                      startAdornment: (
+                        <div className="p-2 rounded-full bg-[#007547]/10 mr-3">
+                          <PriceIcon className="text-[#007547]" />
+                        </div>
+                      )
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '0.75rem',
+                        backgroundColor: '#f9fafb',
+                        '& fieldset': {
+                          borderColor: '#e5e7eb',
+                          borderWidth: '2px'
+                        }
+                      }
+                    }}
+                    className="shadow-sm"
+                  />
+                </div>
+
+                {/* Total Revenue */}
+                <div className="space-y-2">
+                  <label className="block text-base font-semibold text-[#007547]">
+                    Total Revenue (RWF)
+                  </label>
+                  <TextField
+                    name="total_revenue"
+                    type="number"
+                    value={currentSale.total_revenue || ''}
+                    fullWidth
+                    variant="outlined"
+                    InputProps={{
+                      readOnly: true,
+                      startAdornment: (
+                        <div className="p-2 rounded-full bg-[#007547]/10 mr-3">
+                          <PriceIcon className="text-[#007547]" />
+                        </div>
+                      )
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '0.75rem',
+                        backgroundColor: '#f9fafb',
+                        '& fieldset': {
+                          borderColor: '#e5e7eb',
+                          borderWidth: '2px'
+                        }
+                      }
+                    }}
+                    className="shadow-sm"
+                  />
+                </div>
+
+                {/* Sale Date */}
+                <div className="space-y-2">
+                  <label className="block text-base font-semibold text-[#007547]">
+                    Sale Date
+                  </label>
+                  <TextField
+                    name="sale_date"
+                    type="date"
+                    value={currentSale.sale_date}
+                    onChange={handleInputChange}
+                    fullWidth
+                    variant="outlined"
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '0.75rem',
+                        backgroundColor: 'white',
+                        '& fieldset': {
+                          borderColor: '#e5e7eb',
+                          borderWidth: '2px'
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#007547'
+                        }
+                      }
+                    }}
+                    className="shadow-sm hover:shadow transition-shadow duration-200"
+                  />
+                </div>
+
+                {/* Payment Mode */}
+                <div className="space-y-2">
+                  <label className="block text-base font-semibold text-[#007547]">
+                    Payment Mode
+                  </label>
+                  <FormControl fullWidth variant="outlined">
+                    <Select
+                      name="payment_mode"
+                      value={currentSale.payment_mode}
+                      onChange={handleInputChange}
+                      className="bg-white shadow-sm hover:shadow transition-shadow duration-200"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#e5e7eb',
+                          borderWidth: '2px'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#007547'
+                        },
+                        borderRadius: '0.75rem'
+                      }}
+                    >
+                      {[
+                        { value: 'Cash', icon: <PriceIcon /> },
+                        { value: 'Card', icon: <PriceIcon /> },
+                        { value: 'Mobile Money', icon: <PriceIcon /> }
+                      ].map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          <div className="flex items-center py-1.5">
+                            <div className="p-2 rounded-full bg-[#007547]/10 mr-3">
+                              {option.icon}
+                            </div>
+                            <span className="font-medium">{option.value}</span>
+                          </div>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </div>
+              </div>
+            </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDialog}>Cancel</Button>
             <Button onClick={handleSaveSale} color="primary">
