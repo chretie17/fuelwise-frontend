@@ -254,6 +254,39 @@ const FuelSalesManagement = () => {
             Record New Sale
           </Button>
         </Box>
+        {/* Inventory Table */}
+<Box mt={5}>
+  <Typography variant="h5" color="primary" gutterBottom>
+    Current Inventory Levels
+  </Typography>
+  {inventory.length > 0 ? (
+    <StyledTableContainer component={Paper}>
+      <Table>
+        <StyledTableHead>
+          <TableRow>
+            <TableCell>Fuel Type</TableCell>
+            <TableCell>Available Liters</TableCell>
+            <TableCell>Unit Price (RWF)</TableCell>
+          </TableRow>
+        </StyledTableHead>
+        <TableBody>
+          {inventory.map((item) => (
+            <StyledTableRow key={item.id}>
+              <TableCell>{item.fuel_type}</TableCell>
+              <TableCell>{Number(item.liters).toFixed(2)} L</TableCell>
+              <TableCell>{Number(item.unit_price).toFixed(2)} RWF</TableCell>
+            </StyledTableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </StyledTableContainer>
+  ) : (
+    <Typography variant="body1" color="textSecondary" align="center">
+      No inventory data available.
+    </Typography>
+  )}
+</Box>
+
 
         {/* Sales table */}
         {sales.length > 0 ? (

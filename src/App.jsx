@@ -14,6 +14,7 @@ import SupplierSignup from './pages/SupplierSignup';
 import AddSupplierDetails from './pages/AddSupplierDetails';
 import SupplierBidding from './pages/SupplierBidding';
 import AdminFuelProcurement from './pages/admin/AdminFuelProcurement';
+import AdminFuelSales from './pages/admin/adminfuelsales';
 import AdminBranc from './pages/admin/Branches'
 import AdminEvaluation from './pages/admin/AdminEvaluation';
 import AdminBOQ from './pages/admin/AdminBOQ';
@@ -62,6 +63,7 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/inventory" element={<InventoryManagement />} />
+          <Route path="/admin/fuel-sales" element={<AdminFuelSales />} />
           <Route path="/suppliers" element={<SupplierManagement />} />
           <Route path="/fuel-purchases" element={<FuelPurchasesManagement />} />
           <Route path="/admin-branches" element={<AdminBranc />} />

@@ -1,247 +1,230 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL } from '../../api';
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
-import {
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Typography,
-  Snackbar,
-  Alert,
-  Box,
-  Container,
-  IconButton,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import React from "react";
+import axios from "axios";
+import { API_BASE_URL } from "../../api";
+import { Loader2, FileDown, DollarSign, Droplet, Building2 } from "lucide-react";
 
-// Custom theme
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#007547',
-    },
-    secondary: {
-      main: '#ffffff',
-    },
-  },
-});
+class AdminFuelPurchases extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      purchases: [],
+      loading: true,
+      error: ""
+    };
+  }
 
-// Styled components
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  '&.MuiTableCell-head': {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.secondary.main,
-  },
-}));
+  componentDidMount() {
+    this.fetchPurchases();
+  }
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
-  },
-}));
-
-const AdminFuelPurchasesManagement = () => {
-  const [purchases, setPurchases] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [currentPurchase, setCurrentPurchase] = useState({
-    id: '',
-    fuel_type: '',
-    liters: '',
-    total_cost: '',
-    purchase_date: '',
-    branch_name: '',
-  });
-
-  useEffect(() => {
-    fetchPurchases();
-  }, []);
-
-  const fetchPurchases = async () => {
+  fetchPurchases = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/fuel-purchases/all-with-branch`);
-      setPurchases(response.data);
-    } catch (error) {
-      showSnackbar('Error fetching purchases.', 'error');
+      const response = await axios.get(`${API_BASE_URL}/fuel-purchases/admin/fuel-purchases`);
+      this.setState({ purchases: response.data, loading: false });
+    } catch (err) {
+      console.error("Error fetching purchases:", err);
+      this.setState({ error: "Failed to load purchases data.", loading: false });
     }
   };
 
-  const handleOpenDialog = (purchase = { id: '', fuel_type: '', liters: '', total_cost: '', purchase_date: '', branch_name: '' }) => {
-    setCurrentPurchase(purchase);
-    setOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpen(false);
-    setCurrentPurchase({ id: '', fuel_type: '', liters: '', total_cost: '', purchase_date: '', branch_name: '' });
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCurrentPurchase((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSavePurchase = async () => {
+  handleExportPDF = async () => {
     try {
-      if (currentPurchase.id) {
-        await axios.put(`${API_BASE_URL}/fuel-purchases/${currentPurchase.id}`, currentPurchase);
-        showSnackbar('Purchase updated successfully.', 'success');
-      } else {
-        await axios.post(`${API_BASE_URL}/fuel-purchases`, currentPurchase);
-        showSnackbar('Purchase added successfully.', 'success');
-      }
-      fetchPurchases();
-      handleCloseDialog();
+      const printWindow = window.open('', '', 'width=1000,height=800');
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Fuel Purchases Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #007547; color: white; }
+            .header { margin-bottom: 20px; }
+            .header h1 { color: #007547; }
+            @media print {
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Fuel Purchases Report</h1>
+            <p>Generated on: ${new Date().toLocaleDateString()}</p>
+          </div>
+          ${document.querySelector('.purchases-table').outerHTML}
+          <button onclick="window.print();window.close();" style="margin-top: 20px; padding: 10px 20px; background: #007547; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Print Report
+          </button>
+        </body>
+        </html>
+      `;
+      
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
     } catch (error) {
-      showSnackbar('Error saving purchase.', 'error');
+      console.error('Error generating PDF:', error);
     }
   };
 
-  const handleDeletePurchase = async (id) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/fuel-purchases/${id}`);
-      showSnackbar('Purchase deleted successfully.', 'success');
-      fetchPurchases();
-    } catch (error) {
-      showSnackbar('Error deleting purchase.', 'error');
-    }
+  getTotalCost = () => {
+    return this.state.purchases.reduce((sum, purchase) => sum + Number(purchase.total_cost), 0).toFixed(2);
   };
 
-  const showSnackbar = (message, severity) => {
-    setSnackbar({ open: true, message, severity });
+  getTotalLiters = () => {
+    return this.state.purchases.reduce((sum, purchase) => sum + Number(purchase.liters), 0).toFixed(2);
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbar({ open: false, message: '', severity: 'success' });
+  getUniqueBranches = () => {
+    return new Set(this.state.purchases.map(purchase => purchase.branch_name)).size;
   };
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h4" gutterBottom color="primary">
-            Admin Fuel Purchases Management
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{ mb: 2 }}
+  formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  renderStatsCard = (title, value, icon, bgColor) => {
+    return (
+      <div className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-gray-500 mb-1">{title}</p>
+            <h3 className="text-2xl font-bold">{value}</h3>
+          </div>
+          <div className={`p-3 ${bgColor} rounded-lg`}>
+            {icon}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  renderHeader = () => {
+    return (
+      <div className="mb-8 flex flex-col gap-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-[#007547]">Admin Fuel Purchases</h1>
+            <p className="text-gray-500 mt-1">Manage and monitor your fuel purchase history</p>
+          </div>
+          <button
+            onClick={this.handleExportPDF}
+            className="flex items-center gap-2 px-6 py-3 bg-[#007547] text-white rounded-lg hover:bg-[#006037] transition-all transform hover:scale-105 shadow-lg"
           >
-            Add New Purchase
-          </Button>
-          <TableContainer component={Paper} elevation={3}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <StyledTableCell>Fuel Type</StyledTableCell>
-                  <StyledTableCell align="right">Liters</StyledTableCell>
-                  <StyledTableCell align="right">Total Cost</StyledTableCell>
-                  <StyledTableCell>Purchase Date</StyledTableCell>
-                  <StyledTableCell>Branch</StyledTableCell> {/* New branch column */}
-                  <StyledTableCell align="center">Actions</StyledTableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {purchases.map((purchase) => (
-                  <StyledTableRow key={purchase.id}>
-                    <TableCell>{purchase.fuel_type}</TableCell>
-                    <TableCell align="right">{purchase.liters}</TableCell>
-                    <TableCell align="right">{purchase.total_cost}</TableCell>
-                    <TableCell>{purchase.purchase_date}</TableCell>
-                    <TableCell>{purchase.branch_name}</TableCell> {/* Display branch name */}
-                    <TableCell align="center">
-                      <IconButton color="primary" onClick={() => handleOpenDialog(purchase)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton color="error" onClick={() => handleDeletePurchase(purchase.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </StyledTableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+            <FileDown className="w-5 h-5" />
+            Export PDF
+          </button>
+        </div>
 
-        <Dialog open={open} onClose={handleCloseDialog}>
-          <DialogTitle>{currentPurchase.id ? 'Edit Purchase' : 'Add New Purchase'}</DialogTitle>
-          <DialogContent>
-            <TextField
-              margin="dense"
-              label="Fuel Type"
-              name="fuel_type"
-              value={currentPurchase.fuel_type}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              margin="dense"
-              label="Liters"
-              name="liters"
-              type="number"
-              value={currentPurchase.liters}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              margin="dense"
-              label="Total Cost"
-              name="total_cost"
-              type="number"
-              value={currentPurchase.total_cost}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              margin="dense"
-              label="Purchase Date"
-              name="purchase_date"
-              type="date"
-              value={currentPurchase.purchase_date}
-              onChange={handleInputChange}
-              fullWidth
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button onClick={handleSavePurchase} color="primary" variant="contained">
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {this.renderStatsCard(
+            "Total Cost",
+            `Rwf ${this.getTotalCost()}`,
+            <DollarSign className="w-6 h-6 text-[#007547]" />,
+            "bg-green-100"
+          )}
+          {this.renderStatsCard(
+            "Total Liters",
+            `${this.getTotalLiters()}L`,
+            <Droplet className="w-6 h-6 text-[#007547]" />,
+            "bg-blue-100"
+          )}
+          {this.renderStatsCard(
+            "Active Branches",
+            this.getUniqueBranches(),
+            <Building2 className="w-6 h-6 text-[#007547]" />,
+            "bg-purple-100"
+          )}
+        </div>
+      </div>
+    );
+  };
 
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={3000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Container>
-    </ThemeProvider>
-  );
-};
+  renderTable = () => {
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse rounded-lg overflow-hidden purchases-table">
+          <thead className="bg-[#007547] text-white">
+            <tr>
+              <th className="px-6 py-4 text-left text-sm font-semibold">Fuel Type</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold">Liters</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold">Total Cost</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold">Purchase Date</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold">Branch</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.purchases.map((purchase) => (
+              <tr 
+                key={purchase.id} 
+                className="border-b hover:bg-gray-50 transition-colors"
+              >
+                <td className="px-6 py-4 text-sm text-gray-700">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {purchase.fuel_type}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-700 font-medium">
+                  {Number(purchase.liters).toFixed(2)} L
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-700 font-medium">
+                  Rwf {Number(purchase.total_cost).toFixed(2)}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-700">
+                  {this.formatDate(purchase.purchase_date)}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-700">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {purchase.branch_name}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
-export default AdminFuelPurchasesManagement;
+  render() {
+    const { loading, error } = this.state;
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto p-6">
+          {this.renderHeader()}
+          
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <Loader2 className="w-8 h-8 animate-spin text-[#007547]" />
+                <span className="ml-3 text-gray-700 text-lg">Loading purchases data...</span>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-600 font-semibold text-lg">{error}</p>
+                <button
+                  onClick={this.fetchPurchases}
+                  className="mt-4 px-4 py-2 bg-[#007547] text-white rounded-lg hover:bg-[#006037]"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              this.renderTable()
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default AdminFuelPurchases;
